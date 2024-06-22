@@ -2,6 +2,60 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+struct ShaderProgramSource
+{
+	std::string m_vertexSource;
+	std::string m_fragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& file)
+{
+	std::ifstream stream(file);
+
+	enum class ShaderType
+	{
+		Vertex,
+		Fragment,
+		None
+	};
+
+	std::stringstream vertextStream;
+	std::stringstream fragmentStream;
+	
+	ShaderType type;
+
+	std::string line;
+	while (getline(stream, line))
+	{
+		if (line.find("#shader") != std::string::npos)
+		{
+			if (line.find("vertex") != std::string::npos)
+			{
+				type = ShaderType::Vertex;
+			}
+			else if (line.find("fragment") != std::string::npos)
+			{
+				type = ShaderType::Fragment;
+			}
+		}
+		else
+		{
+			if (type == ShaderType::Vertex)
+			{
+				vertextStream << line << '\n';
+			}
+			else if (type == ShaderType::Fragment)
+			{
+				fragmentStream << line << '\n';
+			}
+		}
+	}
+	return { vertextStream.str(), fragmentStream.str() };
+}
 
 static uint32_t compileShader(const std::string& source, uint32_t type)
 {
@@ -99,32 +153,14 @@ int main(int argc, char** argv)
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 	glEnableVertexAttribArray(0);
 
+	//-- Parse shader files
+	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+
 	//-- Vertex shader will be called for every vertex in array
 	//-- gl_Position is vec4 so we consider in as vec4 just to avoid casting from vec2
-	std::string vertexShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location = 0) in vec4 position;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = position;\n"
-		"}\n";
-
-	//-- Fragment shader will be called for every point that lies in triangle described by vertex array
-	std::string fragmentShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location = 0) out vec4 color;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	color = vec4(0.0f, 1.0f, 0.0f, 1.0f);\n"
-		"}\n";
-
-	uint32_t shader = createShader(vertexShader, fragmentShader);
+	uint32_t shaderProg = createShader(source.m_vertexSource, source.m_fragmentSource);
 	//-- Bind our shader to our vertex array
-	glUseProgram(shader);
+	glUseProgram(shaderProg);
 
 	//-- Loop until the user closes the window
 	while (!glfwWindowShouldClose(window))
@@ -141,7 +177,7 @@ int main(int argc, char** argv)
 		glfwPollEvents();
 	}
 
-	glDeleteShader(shader);
+	glDeleteProgram(shaderProg);
 
 	glfwTerminate();
 	return 0;
