@@ -140,18 +140,30 @@ int main(int argc, char** argv)
 
 	float positions[] =
 	{
-		-0.5f,	-0.5f,
-		0.0f,	0.5f,
-		0.5f,	-0.5f
+		-0.5f,	-0.5f, //-- vertex index 1
+		0.5f,	-0.5f, //-- vertex index 2
+		0.5f,	0.5f, //-- vertex index 3
+		-0.5f,	0.5f, //-- vertex index 4
+	};
+
+	uint32_t indexBuffer[] =
+	{
+		0, 1, 2, //-- indices that descride first triangle for square
+		2, 3, 0 //-- and second one
 	};
 
 	uint32_t buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 2 * 6 * sizeof(float), positions, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+	uint32_t indexBufferObject;
+	glGenBuffers(1, &indexBufferObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * 3 * sizeof(uint32_t), indexBuffer, GL_STATIC_DRAW);
 
 	//-- Parse shader files
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -159,6 +171,7 @@ int main(int argc, char** argv)
 	//-- Vertex shader will be called for every vertex in array
 	//-- gl_Position is vec4 so we consider in as vec4 just to avoid casting from vec2
 	uint32_t shaderProg = createShader(source.m_vertexSource, source.m_fragmentSource);
+
 	//-- Bind our shader to our vertex array
 	glUseProgram(shaderProg);
 
@@ -168,7 +181,7 @@ int main(int argc, char** argv)
 		//-- Render here
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		//-- Swap front and back buffers
 		glfwSwapBuffers(window);
