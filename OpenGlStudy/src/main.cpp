@@ -6,6 +6,10 @@
 #include <string>
 #include <sstream>
 
+#include <cmath>
+
+#define PI 3.14159265358979323846
+
 struct ShaderProgramSource
 {
 	std::string m_vertexSource;
@@ -159,7 +163,7 @@ int main(int argc, char** argv)
 	}
 
 	//-- Create a windowed mode window and its OpenGL context
-	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -169,6 +173,9 @@ int main(int argc, char** argv)
 	//-- Make the window's context current
 	glfwMakeContextCurrent(window);
 
+	//-- Setting our framerate
+	glfwSwapInterval(1);
+
 	if (glewInit() != GLEW_OK)
 	{
 		std::cerr << __FUNCTION__ << " " << __LINE__ << std::endl;
@@ -177,7 +184,8 @@ int main(int argc, char** argv)
 	
 	std::cout << "GLFW version: " << glfwGetVersionString() << std::endl;
 	std::cout << "GLEW version: " << glGetString(GL_VERSION) << std::endl;
-
+	
+	//-- square
 	float positions[] =
 	{
 		-0.5f,	-0.5f, //-- vertex index 1
@@ -214,13 +222,33 @@ int main(int argc, char** argv)
 	//-- Bind our shader to our vertex array
 	GLCall(glUseProgram(shaderProg));
 
+	//-- Uniforms is our way to pass data from CPU to GPU, to some shader
+	//-- Location is an shader index for uniform
+	int location = glGetUniformLocation(shaderProg, "u_Color");
+	ASSERT(location != -1);
+	GLCall(glUniform4f(location, 0.0f, 0.2f, 0.5f, 1.0f));
+
+	float r = 0.0f;
+	float inc = 0.005f;
 	//-- Loop until the user closes the window
 	while (!glfwWindowShouldClose(window))
 	{
 		//-- Render here
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
+		GLCall(glUniform4f(location, r, 0.5f, 0.5f, 1.0f));
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+		if (r > 1.0f)
+		{
+			inc = -inc;
+		}
+		else if (r < 0.0f)
+		{
+			inc = -inc;
+		}
+
+		r += inc;
 
 		//-- Swap front and back buffers
 		glfwSwapBuffers(window);
