@@ -162,6 +162,10 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 	//-- Create a windowed mode window and its OpenGL context
 	window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
 	if (!window)
@@ -196,14 +200,18 @@ int main(int argc, char** argv)
 
 	uint32_t indexBuffer[] =
 	{
-		0, 1, 2, //-- indices that descride first triangle for square
+		0, 1, 2, //-- indices that describe first triangle for square
 		2, 3, 0 //-- and second one
 	};
 
-	uint32_t buffer;
-	GLCall(glGenBuffers(1, &buffer));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, 2 * 6 * sizeof(float), positions, GL_STATIC_DRAW));
+	uint32_t vertexArrayObject;
+	GLCall(glGenVertexArrays(1, &vertexArrayObject));
+	GLCall(glBindVertexArray(vertexArrayObject));
+
+	uint32_t vertexBuffer;
+	GLCall(glGenBuffers(1, &vertexBuffer));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, 2 * 4 * sizeof(float), positions, GL_STATIC_DRAW));
 
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
@@ -228,6 +236,11 @@ int main(int argc, char** argv)
 	ASSERT(location != -1);
 	GLCall(glUniform4f(location, 0.0f, 0.2f, 0.5f, 1.0f));
 
+	GLCall(glBindVertexArray(0));
+	GLCall(glUseProgram(0));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
 	float r = 0.0f;
 	float inc = 0.005f;
 	//-- Loop until the user closes the window
@@ -236,7 +249,11 @@ int main(int argc, char** argv)
 		//-- Render here
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
+		GLCall(glUseProgram(shaderProg));
 		GLCall(glUniform4f(location, r, 0.5f, 0.5f, 1.0f));
+
+		GLCall(glBindVertexArray(vertexArrayObject));
+
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
 		if (r > 1.0f)
