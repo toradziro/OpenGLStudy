@@ -5,57 +5,17 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <memory>
 
-#include <cmath>
-
-#define PI 3.14159265358979323846
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 struct ShaderProgramSource
 {
 	std::string m_vertexSource;
 	std::string m_fragmentSource;
 };
-
-#if defined(_MSC_VER)
-	#define DEBUG_BREAK() __debugbreak()
-#elif defined(__GNUC__) || defined(__clang__)
-	#if defined(__i386__) || defined(__x86_64__)
-		#define DEBUG_BREAK() asm volatile("int3")
-	#else
-		#include <csignal>
-		#define DEBUG_BREAK() raise(SIGTRAP)
-	#endif
-#elif defined(__MINGW32__) || defined(__MINGW64__)
-	#define DEBUG_BREAK() __builtin_trap()
-#else
-	#include <cassert>
-	#define DEBUG_BREAK() assert(false)
-#endif
-
-#define ASSERT(x) if (!(x)) { DEBUG_BREAK(); }
-#define GLCall(x) GLCLearError();\
-	x;\
-	ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-
-static void GLCLearError()
-{
-	while (glGetError() != GL_NO_ERROR) { }
-}
-
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-	while (GLenum error = glGetError())
-	{
-		if (error == GL_NO_ERROR)
-		{
-			break;
-		}
-		std::cout << "[OpenGL Error] (" << error << "): " <<
-			function << " " << file << " " << line << std::endl;
-		return false;
-	}
-	return true;
-}
 
 static ShaderProgramSource ParseShader(const std::string& file)
 {
@@ -198,7 +158,7 @@ int main(int argc, char** argv)
 		-0.5f,	0.5f, //-- vertex index 4
 	};
 
-	uint32_t indexBuffer[] =
+	uint32_t indexBufferData[] =
 	{
 		0, 1, 2, //-- indices that describe first triangle for square
 		2, 3, 0 //-- and second one
@@ -208,18 +168,13 @@ int main(int argc, char** argv)
 	GLCall(glGenVertexArrays(1, &vertexArrayObject));
 	GLCall(glBindVertexArray(vertexArrayObject));
 
-	uint32_t vertexBuffer;
-	GLCall(glGenBuffers(1, &vertexBuffer));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, 2 * 4 * sizeof(float), positions, GL_STATIC_DRAW));
+	std::unique_ptr<VertexBuffer> vertexBuffer = std::make_unique<VertexBuffer>(positions, 2 * 4 * sizeof(float));
 
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
-	uint32_t indexBufferObject;
-	GLCall(glGenBuffers(1, &indexBufferObject));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * 3 * sizeof(uint32_t), indexBuffer, GL_STATIC_DRAW));
+	std::unique_ptr<IndexBuffer> indexBuffer = std::make_unique<IndexBuffer>(indexBufferData, 2 * 3);
+
 	//-- Parse shader files
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
 
@@ -236,10 +191,10 @@ int main(int argc, char** argv)
 	ASSERT(location != -1);
 	GLCall(glUniform4f(location, 0.0f, 0.2f, 0.5f, 1.0f));
 
-	GLCall(glBindVertexArray(0));
+	vertexBuffer->Unbind();
 	GLCall(glUseProgram(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+	indexBuffer->Unbind();
 
 	float r = 0.0f;
 	float inc = 0.005f;
@@ -253,6 +208,7 @@ int main(int argc, char** argv)
 		GLCall(glUniform4f(location, r, 0.5f, 0.5f, 1.0f));
 
 		GLCall(glBindVertexArray(vertexArrayObject));
+		indexBuffer->Bind();
 
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
@@ -275,6 +231,9 @@ int main(int argc, char** argv)
 	}
 
 	GLCall(glDeleteProgram(shaderProg));
+
+	vertexBuffer.reset();
+	indexBuffer.reset();
 
 	glfwTerminate();
 	return 0;
