@@ -8,8 +8,8 @@ public:
 	VertexBuffer(const void* data, uint32_t size);
 	~VertexBuffer();
 
-	void Bind() const;
-	void Unbind() const;
+	void bind() const;
+	void unbind() const;
 
 private:
 	uint32_t m_rendererID;

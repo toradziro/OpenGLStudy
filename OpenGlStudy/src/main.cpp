@@ -10,6 +10,8 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "VertexBufferLayout.h"
 
 struct ShaderProgramSource
 {
@@ -164,14 +166,15 @@ int main(int argc, char** argv)
 		2, 3, 0 //-- and second one
 	};
 
-	uint32_t vertexArrayObject;
-	GLCall(glGenVertexArrays(1, &vertexArrayObject));
-	GLCall(glBindVertexArray(vertexArrayObject));
 
-	std::unique_ptr<VertexBuffer> vertexBuffer = std::make_unique<VertexBuffer>(positions, 2 * 4 * sizeof(float));
 
-	GLCall(glEnableVertexAttribArray(0));
-	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+	std::unique_ptr<VertexArray> vertexArray = std::make_unique<VertexArray>();
+	std::unique_ptr<VertexBuffer> vertexBuffer = std::make_unique<VertexBuffer>(positions, uint32_t(2 * 4 * sizeof(float)));
+	
+	VertexBufferLayout layout;
+
+	layout.push<float>(2);
+	vertexArray->addBuffer(*vertexBuffer, layout);
 
 	std::unique_ptr<IndexBuffer> indexBuffer = std::make_unique<IndexBuffer>(indexBufferData, 2 * 3);
 
@@ -191,10 +194,10 @@ int main(int argc, char** argv)
 	ASSERT(location != -1);
 	GLCall(glUniform4f(location, 0.0f, 0.2f, 0.5f, 1.0f));
 
-	vertexBuffer->Unbind();
+	vertexBuffer->unbind();
 	GLCall(glUseProgram(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	indexBuffer->Unbind();
+	indexBuffer->unbind();
 
 	float r = 0.0f;
 	float inc = 0.005f;
@@ -207,8 +210,8 @@ int main(int argc, char** argv)
 		GLCall(glUseProgram(shaderProg));
 		GLCall(glUniform4f(location, r, 0.5f, 0.5f, 1.0f));
 
-		GLCall(glBindVertexArray(vertexArrayObject));
-		indexBuffer->Bind();
+		vertexArray->bind();
+		indexBuffer->bind();
 
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
@@ -234,6 +237,7 @@ int main(int argc, char** argv)
 
 	vertexBuffer.reset();
 	indexBuffer.reset();
+	vertexArray.reset();
 
 	glfwTerminate();
 	return 0;
