@@ -63,63 +63,60 @@ int main(int argc, char** argv)
 		2, 3, 0		//-- and second one
 	};
 
-	std::unique_ptr<VertexArray> vertexArray = std::make_unique<VertexArray>();
-	std::unique_ptr<VertexBuffer> vertexBuffer = std::make_unique<VertexBuffer>(positions, uint32_t(2 * 4 * sizeof(float)));
-	
-	VertexBufferLayout layout;
-
-	layout.push<float>(2);
-	vertexArray->addBuffer(*vertexBuffer, layout);
-
-	std::unique_ptr<IndexBuffer> indexBuffer = std::make_unique<IndexBuffer>(indexBufferData, 2 * 3);
-
-	std::unique_ptr<Shader> shader = std::make_unique<Shader>("res/shaders/Basic.shader");
-	shader->bind();
-	shader->setUniform4f("u_Color", 0.0f, 0.2f, 0.5f, 1.0f);
-
-	vertexBuffer->unbind();
-	indexBuffer->unbind();
-	vertexArray->unbind();
-	shader->unbind();
-
-	float r = 0.0f;
-	float inc = 0.005f;
-	//-- Loop until the user closes the window
-	while (!glfwWindowShouldClose(window))
+	//-- We need additional scope to let all resources go before we call glfwTerminate();
 	{
-		//-- Render here
-		GLCall(glClear(GL_COLOR_BUFFER_BIT));
-
-		shader->bind();
-		shader->setUniform4f("u_Color", r, 0.2f, 0.5f, 1.0f);
-
-		vertexArray->bind();
-		indexBuffer->bind();
-
-		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
-
-		if (r > 1.0f)
-		{
-			inc = -inc;
-		}
-		else if (r < 0.0f)
-		{
-			inc = -inc;
-		}
-
-		r += inc;
-
-		//-- Swap front and back buffers
-		glfwSwapBuffers(window);
+		VertexArray vertexArray = VertexArray();
+		VertexBuffer vertexBuffer = VertexBuffer(positions, uint32_t(2 * 4 * sizeof(float)));
 		
-		//-- Poll for and process events
-		glfwPollEvents();
-	}
+		VertexBufferLayout layout;
 
-	shader.reset();
-	vertexBuffer.reset();
-	indexBuffer.reset();
-	vertexArray.reset();
+		layout.push<float>(2);
+		vertexArray.addBuffer(vertexBuffer, layout);
+
+		IndexBuffer indexBuffer = IndexBuffer(indexBufferData, 2 * 3);
+
+		Shader shader = Shader("res/shaders/Basic.shader");
+		shader.bind();
+		shader.setUniform4f("u_Color", 0.0f, 0.2f, 0.5f, 1.0f);
+
+		vertexBuffer.unbind();
+		indexBuffer.unbind();
+		vertexArray.unbind();
+		shader.unbind();
+
+		Renderer renderer;
+
+		float r = 0.0f;
+		float inc = 0.005f;
+		//-- Loop until the user closes the window
+		while (!glfwWindowShouldClose(window))
+		{
+			//-- Render here
+			renderer.clear();
+
+			shader.bind();
+			shader.setUniform4f("u_Color", r, 0.2f, 0.5f, 1.0f);
+
+			renderer.draw(vertexArray, indexBuffer, shader);
+
+			if (r > 1.0f)
+			{
+				inc = -inc;
+			}
+			else if (r < 0.0f)
+			{
+				inc = -inc;
+			}
+
+			r += inc;
+
+			//-- Swap front and back buffers
+			glfwSwapBuffers(window);
+			
+			//-- Poll for and process events
+			glfwPollEvents();
+		}
+	}
 
 	glfwTerminate();
 	return 0;
