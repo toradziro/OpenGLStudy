@@ -123,22 +123,32 @@ void Shader::createShader(const std::string& vertexShader, const std::string& fr
 
 void Shader::setUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
 {
+	GLCall(glUniform4f(uniformLocation(name), v0, v1, v2, v3));
+}
+
+
+void Shader::setUniform1f(const std::string& name, float v0)
+{
+	GLCall(glUniform1f(uniformLocation(name), v0));
+}
+
+void Shader::setUniform1i(const std::string& name, int v0)
+{
+	GLCall(glUniform1i(uniformLocation(name), v0));
+}
+
+uint32_t Shader::uniformLocation(const std::string& name)
+{
 	//-- Uniforms is our way to pass data from CPU to GPU, to some shader
 	//-- Location is an shader index for uniform
 	if (m_uniformCache.count(name) == 0)
 	{
-		m_uniformCache[name] = uniformLocation(name);
+		m_uniformCache[name] = glGetUniformLocation(m_rendererId, name.c_str());
 	}
-	GLCall(glUniform4f(m_uniformCache.at(name), v0, v1, v2, v3));
-}
 
-
-uint32_t Shader::uniformLocation(const std::string& name) const
-{
-	GLCall(int location = glGetUniformLocation(m_rendererId, name.c_str()));
-	if (location == -1)
+	if (m_uniformCache[name] == -1)
 	{
 		std::cerr << "[WARNING](OpenGl): Location == -1 for uniform name: '" <<  name << "'" << std::endl;
 	}
-	return location;
+	return m_uniformCache[name];
 }

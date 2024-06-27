@@ -22,9 +22,11 @@ public:
 
 	//-- Set uniforms
 	void setUniform4f(const std::string& name, float v0, float v1, float v2, float v4);
+	void setUniform1f(const std::string& name, float v0);
+	void setUniform1i(const std::string& name, int v0);
 
 private:
-	uint32_t			uniformLocation(const std::string& name) const;
+	uint32_t			uniformLocation(const std::string& name);
 	uint32_t			compileShader(int type, const std::string& srcStr);
 	ShaderProgramSource	parseShader();
 	void				createShader(const std::string& vertexShader, const std::string& fragmentShader);

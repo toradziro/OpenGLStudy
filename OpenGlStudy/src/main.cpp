@@ -10,6 +10,7 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 #include "Shader.h"
+#include "Texture.h"
 
 int main(int argc, char** argv)
 {
@@ -51,10 +52,10 @@ int main(int argc, char** argv)
 	//-- square
 	float positions[] =
 	{
-		-0.5f,	-0.5f,	//-- vertex index 1
-		0.5f,	-0.5f,	//-- vertex index 2
-		0.5f,	0.5f,	//-- vertex index 3
-		-0.5f,	0.5f,	//-- vertex index 4
+		-0.5f, -0.5f, 0.0f, 0.0f,	//-- vertex index 1
+		0.5f, -0.5f, 1.0f, 0.0f,	//-- vertex index 2
+		0.5f, 0.5f, 1.0f, 1.0f,	//-- vertex index 3
+		-0.5f, 0.5f, 0.0f, 1.0f,	//-- vertex index 4
 	};
 
 	uint32_t indexBufferData[] =
@@ -65,11 +66,15 @@ int main(int argc, char** argv)
 
 	//-- We need additional scope to let all resources go before we call glfwTerminate();
 	{
+		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		GLCall(glEnable(GL_BLEND));
+
 		VertexArray vertexArray = VertexArray();
-		VertexBuffer vertexBuffer = VertexBuffer(positions, uint32_t(2 * 4 * sizeof(float)));
+		VertexBuffer vertexBuffer = VertexBuffer(positions, uint32_t(4 * 4 * sizeof(float)));
 		
 		VertexBufferLayout layout;
 
+		layout.push<float>(2);
 		layout.push<float>(2);
 		vertexArray.addBuffer(vertexBuffer, layout);
 
@@ -77,7 +82,12 @@ int main(int argc, char** argv)
 
 		Shader shader = Shader("res/shaders/Basic.shader");
 		shader.bind();
-		shader.setUniform4f("u_Color", 0.0f, 0.2f, 0.5f, 1.0f);
+		//shader.setUniform4f("u_Color", 0.0f, 0.2f, 0.5f, 1.0f);
+
+		Texture texture("res/textures/bomb.png");
+		texture.bind();
+		//-- Must match with slot we bind texture to
+		shader.setUniform1i("u_Texture", 0);
 
 		vertexBuffer.unbind();
 		indexBuffer.unbind();
@@ -95,7 +105,7 @@ int main(int argc, char** argv)
 			renderer.clear();
 
 			shader.bind();
-			shader.setUniform4f("u_Color", r, 0.2f, 0.5f, 1.0f);
+			//shader.setUniform4f("u_Color", r, 0.2f, 0.5f, 1.0f);
 
 			renderer.draw(vertexArray, indexBuffer, shader);
 
