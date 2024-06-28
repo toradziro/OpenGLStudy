@@ -12,6 +12,9 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 int main(int argc, char** argv)
 {
 	GLFWwindow* window;
@@ -27,7 +30,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//-- Create a windowed mode window and its OpenGL context
-	window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(840, 620, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -80,9 +83,12 @@ int main(int argc, char** argv)
 
 		IndexBuffer indexBuffer = IndexBuffer(indexBufferData, 2 * 3);
 
+		glm::mat4 proj = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, -1.0f, 1.0f);
+
 		Shader shader = Shader("res/shaders/Basic.shader");
 		shader.bind();
 		//shader.setUniform4f("u_Color", 0.0f, 0.2f, 0.5f, 1.0f);
+		shader.setUniformMat4f("u_ModuleViewProjection", proj);
 
 		Texture texture("res/textures/bomb.png");
 		texture.bind();

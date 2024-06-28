@@ -137,6 +137,11 @@ void Shader::setUniform1i(const std::string& name, int v0)
 	GLCall(glUniform1i(uniformLocation(name), v0));
 }
 
+void Shader::setUniformMat4f(const std::string& name, const glm::mat4& mat)
+{
+	GLCall(glUniformMatrix4fv(uniformLocation(name), 1, GL_FALSE, &mat[0][0]));
+}
+
 uint32_t Shader::uniformLocation(const std::string& name)
 {
 	//-- Uniforms is our way to pass data from CPU to GPU, to some shader
