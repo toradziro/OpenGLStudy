@@ -1,8 +1,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <windows.h>
+
 #include <iostream>
 #include <memory>
+#include <limits>
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
@@ -14,6 +17,18 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw_gl3.h"
+
+float GetScreenScaleFactor()
+{
+	HDC screen = GetDC(0);
+	int dpi = GetDeviceCaps(screen, LOGPIXELSX);
+	ReleaseDC(0, screen);
+
+	return dpi / 96.0f;
+}
 
 int main(int argc, char** argv)
 {
@@ -30,7 +45,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//-- Create a windowed mode window and its OpenGL context
-	window = glfwCreateWindow(840, 620, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(2000, 1200, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -52,13 +67,27 @@ int main(int argc, char** argv)
 	std::cout << "GLFW version: " << glfwGetVersionString() << std::endl;
 	std::cout << "GLEW version: " << glGetString(GL_VERSION) << std::endl;
 	
+	float scaleFactor = GetScreenScaleFactor();
+
+	ImGui::CreateContext();
+
+	//-- Set up sizes
+	ImGuiIO& io = ImGui::GetIO();
+	io.FontGlobalScale = scaleFactor;
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.ScaleAllSizes(scaleFactor);
+
+
+	ImGui_ImplGlfwGL3_Init(window, true);
+	ImGui::StyleColorsDark();
+
 	//-- square
 	float positions[] =
 	{
-		-0.5f, -0.5f, 0.0f, 0.0f,	//-- vertex index 1
-		0.5f, -0.5f, 1.0f, 0.0f,	//-- vertex index 2
-		0.5f, 0.5f, 1.0f, 1.0f,	//-- vertex index 3
-		-0.5f, 0.5f, 0.0f, 1.0f,	//-- vertex index 4
+		200.0f, 200.0f, 0.0f, 0.0f,	//-- vertex index 1
+		400.0f, 200.0f, 1.0f, 0.0f,	//-- vertex index 2
+		400.0f, 400.0f, 1.0f, 1.0f,	//-- vertex index 3
+		200.0f, 400.0f, 0.0f, 1.0f,	//-- vertex index 4
 	};
 
 	uint32_t indexBufferData[] =
@@ -83,12 +112,11 @@ int main(int argc, char** argv)
 
 		IndexBuffer indexBuffer = IndexBuffer(indexBufferData, 2 * 3);
 
-		glm::mat4 proj = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, -1.0f, 1.0f);
+		glm::mat4 proj = glm::ortho(0.0f, 2000.0f, 0.0f, 1200.0f, -1.0f, 1.0f);
+		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));
 
 		Shader shader = Shader("res/shaders/Basic.shader");
 		shader.bind();
-		//shader.setUniform4f("u_Color", 0.0f, 0.2f, 0.5f, 1.0f);
-		shader.setUniformMat4f("u_ModuleViewProjection", proj);
 
 		Texture texture("res/textures/bomb.png");
 		texture.bind();
@@ -104,14 +132,20 @@ int main(int argc, char** argv)
 
 		float r = 0.0f;
 		float inc = 0.005f;
+
+		glm::vec3 translation(0.0f, 0.0f, 0.0f);
+
 		//-- Loop until the user closes the window
 		while (!glfwWindowShouldClose(window))
 		{
-			//-- Render here
+			//-- Poll for and process events
 			renderer.clear();
 
+			glfwPollEvents();
+			ImGui_ImplGlfwGL3_NewFrame();
+
+			//-- Render here
 			shader.bind();
-			//shader.setUniform4f("u_Color", r, 0.2f, 0.5f, 1.0f);
 
 			renderer.draw(vertexArray, indexBuffer, shader);
 
@@ -126,14 +160,28 @@ int main(int argc, char** argv)
 
 			r += inc;
 
+			{
+				ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 2000.0f);
+
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+				glm::mat4 mvp = proj * view * model;
+				shader.setUniformMat4f("u_ModuleViewProjection", mvp);
+
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			}
+
+			ImGui::Render();
+			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 			//-- Swap front and back buffers
 			glfwSwapBuffers(window);
 			
-			//-- Poll for and process events
-			glfwPollEvents();
 		}
 	}
 
+	//-- Cleanup ImGui & glfw
+	ImGui_ImplGlfwGL3_Shutdown();
+	ImGui::DestroyContext();
 	glfwTerminate();
+
 	return 0;
 }
