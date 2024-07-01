@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//-- Create a windowed mode window and its OpenGL context
-	window = glfwCreateWindow(2000, 1200, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(1600, 800, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -84,10 +84,10 @@ int main(int argc, char** argv)
 	//-- square
 	float positions[] =
 	{
-		200.0f, 200.0f, 0.0f, 0.0f,	//-- vertex index 1
-		400.0f, 200.0f, 1.0f, 0.0f,	//-- vertex index 2
-		400.0f, 400.0f, 1.0f, 1.0f,	//-- vertex index 3
-		200.0f, 400.0f, 0.0f, 1.0f,	//-- vertex index 4
+		-50.0f, -50.0f, 0.0f, 0.0f,	//-- vertex index 1
+		50.0f, -50.0f, 1.0f, 0.0f,	//-- vertex index 2
+		50.0f, 50.0f, 1.0f, 1.0f,	//-- vertex index 3
+		-50.0f, 50.0f, 0.0f, 1.0f,	//-- vertex index 4
 	};
 
 	uint32_t indexBufferData[] =
@@ -112,8 +112,8 @@ int main(int argc, char** argv)
 
 		IndexBuffer indexBuffer = IndexBuffer(indexBufferData, 2 * 3);
 
-		glm::mat4 proj = glm::ortho(0.0f, 2000.0f, 0.0f, 1200.0f, -1.0f, 1.0f);
-		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));
+		glm::mat4 proj = glm::ortho(0.0f, 1600.0f, 0.0f, 800.0f, -1.0f, 1.0f);
+		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 		Shader shader = Shader("res/shaders/Basic.shader");
 		shader.bind();
@@ -130,10 +130,8 @@ int main(int argc, char** argv)
 
 		Renderer renderer;
 
-		float r = 0.0f;
-		float inc = 0.005f;
-
-		glm::vec3 translation(0.0f, 0.0f, 0.0f);
+		glm::vec3 translationA(100.0f, 100.0f, 0.0f);
+		glm::vec3 translationB(300.0f, 100.0f, 0.0f);
 
 		//-- Loop until the user closes the window
 		while (!glfwWindowShouldClose(window))
@@ -144,30 +142,29 @@ int main(int argc, char** argv)
 			glfwPollEvents();
 			ImGui_ImplGlfwGL3_NewFrame();
 
-			//-- Render here
-			shader.bind();
-
-			renderer.draw(vertexArray, indexBuffer, shader);
-
-			if (r > 1.0f)
 			{
-				inc = -inc;
-			}
-			else if (r < 0.0f)
-			{
-				inc = -inc;
-			}
-
-			r += inc;
-
-			{
-				ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 2000.0f);
-
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-				glm::mat4 mvp = proj * view * model;
-				shader.setUniformMat4f("u_ModuleViewProjection", mvp);
-
+				ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 1600.0f);
+				ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 1600.0f);
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			}
+
+
+			{
+				glm::mat4 modelA = glm::translate(glm::mat4(1.0f), translationA);
+				glm::mat4 mvp = proj * view * modelA;
+
+				shader.bind();
+				shader.setUniformMat4f("u_ModuleViewProjection", mvp);
+				renderer.draw(vertexArray, indexBuffer, shader);
+			}
+
+			{
+				glm::mat4 modelB = glm::translate(glm::mat4(1.0f), translationB);
+				glm::mat4 mvp = proj * view * modelB;
+
+				shader.bind();
+				shader.setUniformMat4f("u_ModuleViewProjection", mvp);
+				renderer.draw(vertexArray, indexBuffer, shader);
 			}
 
 			ImGui::Render();
