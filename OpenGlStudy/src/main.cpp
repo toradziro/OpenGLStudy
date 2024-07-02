@@ -15,12 +15,15 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "tests/TestClearColor.h"
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
+#if defined(_MSC_VER)
 float GetScreenScaleFactor()
 {
 	HDC screen = GetDC(0);
@@ -29,6 +32,7 @@ float GetScreenScaleFactor()
 
 	return dpi / 96.0f;
 }
+#endif
 
 int main(int argc, char** argv)
 {
@@ -66,17 +70,17 @@ int main(int argc, char** argv)
 	
 	std::cout << "GLFW version: " << glfwGetVersionString() << std::endl;
 	std::cout << "GLEW version: " << glGetString(GL_VERSION) << std::endl;
-	
-	float scaleFactor = GetScreenScaleFactor();
 
 	ImGui::CreateContext();
 
 	//-- Set up sizes
+#if defined(_MSC_VER)	
+	float scaleFactor = GetScreenScaleFactor();
 	ImGuiIO& io = ImGui::GetIO();
 	io.FontGlobalScale = scaleFactor;
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.ScaleAllSizes(scaleFactor);
-
+#endif
 
 	ImGui_ImplGlfwGL3_Init(window, true);
 	ImGui::StyleColorsDark();
@@ -133,14 +137,21 @@ int main(int argc, char** argv)
 		glm::vec3 translationA(100.0f, 100.0f, 0.0f);
 		glm::vec3 translationB(300.0f, 100.0f, 0.0f);
 
+		test::TestClearColor testClearColor;
+
 		//-- Loop until the user closes the window
 		while (!glfwWindowShouldClose(window))
 		{
 			//-- Poll for and process events
 			renderer.clear();
 
+			testClearColor.onUpdate(0.0f);
+			testClearColor.onRender();
+
 			glfwPollEvents();
 			ImGui_ImplGlfwGL3_NewFrame();
+
+			testClearColor.onImGuiRender();
 
 			{
 				ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 1600.0f);
@@ -171,7 +182,7 @@ int main(int argc, char** argv)
 			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 			//-- Swap front and back buffers
 			glfwSwapBuffers(window);
-			
+			renderer.clear();
 		}
 	}
 
