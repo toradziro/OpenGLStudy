@@ -40,4 +40,5 @@ public:
 	void draw(const VertexArray& vertexArray, const IndexBuffer& indexBuffer, const Shader& shader) const;
 
 	void clear() const;
+	void setClearColor(const float rgba[4]);
 };

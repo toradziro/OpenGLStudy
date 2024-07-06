@@ -14,6 +14,7 @@
 #include "VertexBufferLayout.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "tests/Test.h"
 
 #include "tests/TestClearColor.h"
 
@@ -138,20 +139,37 @@ int main(int argc, char** argv)
 		glm::vec3 translationB(300.0f, 100.0f, 0.0f);
 
 		test::TestClearColor testClearColor;
+		test::ITest* currentTest = nullptr;
+		std::unique_ptr<test::TestMenu> testMenu = std::make_unique<test::TestMenu>(currentTest);
+		currentTest = testMenu.get();
+
+		testMenu->registerTest<test::TestClearColor>("Clear Color");
+		const float defaultClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		//-- Loop until the user closes the window
 		while (!glfwWindowShouldClose(window))
 		{
 			//-- Poll for and process events
+			renderer.setClearColor(defaultClearColor);
 			renderer.clear();
-
-			testClearColor.onUpdate(0.0f);
-			testClearColor.onRender();
 
 			glfwPollEvents();
 			ImGui_ImplGlfwGL3_NewFrame();
 
-			testClearColor.onImGuiRender();
+			if (currentTest != nullptr)
+			{
+				currentTest->onUpdate(0.0f);
+				currentTest->onRender();
+
+				ImGui::Begin("Test");
+				if (currentTest != testMenu.get() && ImGui::Button("<- Back"))
+				{
+					delete currentTest;
+					currentTest = testMenu.get();
+				}
+				currentTest->onImGuiRender();
+				ImGui::End();
+			}
 
 			{
 				ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 1600.0f);
@@ -183,6 +201,11 @@ int main(int argc, char** argv)
 			//-- Swap front and back buffers
 			glfwSwapBuffers(window);
 			renderer.clear();
+		}
+
+		if (currentTest != testMenu.get())
+		{
+			delete currentTest;
 		}
 	}
 
