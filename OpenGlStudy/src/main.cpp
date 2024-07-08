@@ -8,15 +8,10 @@
 #include <limits>
 
 #include "Renderer.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "VertexBufferLayout.h"
-#include "Shader.h"
-#include "Texture.h"
-#include "tests/Test.h"
 
+#include "tests/Test.h"
 #include "tests/TestClearColor.h"
+#include "tests/TestTexture.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -86,57 +81,10 @@ int main(int argc, char** argv)
 	ImGui_ImplGlfwGL3_Init(window, true);
 	ImGui::StyleColorsDark();
 
-	//-- square
-	float positions[] =
-	{
-		-50.0f, -50.0f, 0.0f, 0.0f,	//-- vertex index 1
-		50.0f, -50.0f, 1.0f, 0.0f,	//-- vertex index 2
-		50.0f, 50.0f, 1.0f, 1.0f,	//-- vertex index 3
-		-50.0f, 50.0f, 0.0f, 1.0f,	//-- vertex index 4
-	};
-
-	uint32_t indexBufferData[] =
-	{
-		0, 1, 2,	//-- indices that describe first triangle for square
-		2, 3, 0		//-- and second one
-	};
-
 	//-- We need additional scope to let all resources go before we call glfwTerminate();
 	{
 		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 		GLCall(glEnable(GL_BLEND));
-
-		VertexArray vertexArray = VertexArray();
-		VertexBuffer vertexBuffer = VertexBuffer(positions, uint32_t(4 * 4 * sizeof(float)));
-		
-		VertexBufferLayout layout;
-
-		layout.push<float>(2);
-		layout.push<float>(2);
-		vertexArray.addBuffer(vertexBuffer, layout);
-
-		IndexBuffer indexBuffer = IndexBuffer(indexBufferData, 2 * 3);
-
-		glm::mat4 proj = glm::ortho(0.0f, 1600.0f, 0.0f, 800.0f, -1.0f, 1.0f);
-		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-		Shader shader = Shader("res/shaders/Basic.shader");
-		shader.bind();
-
-		Texture texture("res/textures/bomb.png");
-		texture.bind();
-		//-- Must match with slot we bind texture to
-		shader.setUniform1i("u_Texture", 0);
-
-		vertexBuffer.unbind();
-		indexBuffer.unbind();
-		vertexArray.unbind();
-		shader.unbind();
-
-		Renderer renderer;
-
-		glm::vec3 translationA(100.0f, 100.0f, 0.0f);
-		glm::vec3 translationB(300.0f, 100.0f, 0.0f);
 
 		test::TestClearColor testClearColor;
 		test::ITest* currentTest = nullptr;
@@ -144,8 +92,10 @@ int main(int argc, char** argv)
 		currentTest = testMenu.get();
 
 		testMenu->registerTest<test::TestClearColor>("Clear Color");
+		testMenu->registerTest<test::TestTexture>("Test Texture");
 		const float defaultClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
+		Renderer renderer;
 		//-- Loop until the user closes the window
 		while (!glfwWindowShouldClose(window))
 		{
@@ -168,32 +118,8 @@ int main(int argc, char** argv)
 					currentTest = testMenu.get();
 				}
 				currentTest->onImGuiRender();
-				ImGui::End();
-			}
-
-			{
-				ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 1600.0f);
-				ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 1600.0f);
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			}
-
-
-			{
-				glm::mat4 modelA = glm::translate(glm::mat4(1.0f), translationA);
-				glm::mat4 mvp = proj * view * modelA;
-
-				shader.bind();
-				shader.setUniformMat4f("u_ModuleViewProjection", mvp);
-				renderer.draw(vertexArray, indexBuffer, shader);
-			}
-
-			{
-				glm::mat4 modelB = glm::translate(glm::mat4(1.0f), translationB);
-				glm::mat4 mvp = proj * view * modelB;
-
-				shader.bind();
-				shader.setUniformMat4f("u_ModuleViewProjection", mvp);
-				renderer.draw(vertexArray, indexBuffer, shader);
+				ImGui::End();
 			}
 
 			ImGui::Render();

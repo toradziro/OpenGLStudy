@@ -1,14 +1,6 @@
 #include "TestTexture.h"
 #include "Renderer.h"
 
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "VertexBufferLayout.h"
-#include "Texture.h"
-
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
@@ -16,7 +8,9 @@ namespace test
 {
 
 TestTexture::TestTexture()
-	: m_texturePath("res/textures/bomb.png")
+	: m_texturePath("res/textures/bomb.png"),
+	m_translationA(100.0f, 100.0f, 0.0f),
+	m_translationB(300.0f, 100.0f, 0.0f)
 {
 	//-- square
 	float positions[] =
@@ -36,42 +30,29 @@ TestTexture::TestTexture()
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	GLCall(glEnable(GL_BLEND));
 
-	VertexArray vertexArray = VertexArray();
-	VertexBuffer vertexBuffer = VertexBuffer(positions, uint32_t(4 * 4 * sizeof(float)));
+	m_vertexArray = std::make_unique<VertexArray>();
+	m_vertexBuffer = std::make_unique<VertexBuffer>(positions, uint32_t(4 * 4 * sizeof(float)));
 
-	VertexBufferLayout layout;
+	m_layout = std::make_unique<VertexBufferLayout>();
+	m_layout->push<float>(2);
+	m_layout->push<float>(2);
+	m_vertexArray->addBuffer(*m_vertexBuffer, *m_layout);
 
-	layout.push<float>(2);
-	layout.push<float>(2);
-	vertexArray.addBuffer(vertexBuffer, layout);
+	m_indexBuffer = std::make_unique<IndexBuffer>(indexBufferData, 2 * 3);
 
-	IndexBuffer indexBuffer = IndexBuffer(indexBufferData, 2 * 3);
+	m_shader = std::make_unique<Shader>("res/shaders/Basic.shader");
+	m_shader->bind();
 
-	glm::mat4 proj = glm::ortho(0.0f, 1600.0f, 0.0f, 800.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-	Shader shader = Shader(m_texturePath);
-	shader.bind();
-
-	Texture texture("res/textures/bomb.png");
-	texture.bind();
+	m_texture = std::make_unique<Texture>("res/textures/bomb.png");
+	m_texture->bind();
 	//-- Must match with slot we bind texture to
-	shader.setUniform1i("u_Texture", 0);
+	m_shader->setUniform1i("u_Texture", 0);
 
-	vertexBuffer.unbind();
-	indexBuffer.unbind();
-	vertexArray.unbind();
-	shader.unbind();
-
-	Renderer renderer;
-
-	glm::vec3 translationA(100.0f, 100.0f, 0.0f);
-	glm::vec3 translationB(300.0f, 100.0f, 0.0f);
+	m_shader->unbind();
 }
 
 TestTexture::~TestTexture()
 {
-
 }
 
 void TestTexture::onUpdate(float dt)
@@ -80,12 +61,33 @@ void TestTexture::onUpdate(float dt)
 
 void TestTexture::onRender()
 {
+	Renderer renderer;
+	glm::mat4 proj = glm::ortho(0.0f, 1600.0f, 0.0f, 800.0f, -1.0f, 1.0f);
+	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+
+	{
+		glm::mat4 modelA = glm::translate(glm::mat4(1.0f), m_translationA);
+		glm::mat4 mvp = proj * view * modelA;
+
+		m_shader->bind();
+		m_shader->setUniformMat4f("u_ModuleViewProjection", mvp);
+		renderer.draw(*m_vertexArray, *m_indexBuffer, *m_shader);
+	}
+
+	{
+		glm::mat4 modelB = glm::translate(glm::mat4(1.0f), m_translationB);
+		glm::mat4 mvp = proj * view * modelB;
+
+		m_shader->bind();
+		m_shader->setUniformMat4f("u_ModuleViewProjection", mvp);
+		renderer.draw(*m_vertexArray, *m_indexBuffer, *m_shader);
+	}
 }
 
 void TestTexture::onImGuiRender()
 {
-	ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 1600.0f);
-	ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 1600.0f);
+	ImGui::SliderFloat3("Translation A", &m_translationA.x, 0.0f, 1600.0f);
+	ImGui::SliderFloat3("Translation B", &m_translationB.x, 0.0f, 1600.0f);
 }
 
 } // test
