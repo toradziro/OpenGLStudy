@@ -161,6 +161,7 @@
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\tests\Test.cpp" />
     <ClCompile Include="src\tests\TestBatchRendering.cpp" />
+    <ClCompile Include="src\tests\TestBatchRenderingWithTextures.cpp" />
     <ClCompile Include="src\tests\TestClearColor.cpp" />
     <ClCompile Include="src\tests\TestTexture.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -176,6 +177,7 @@
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Batch.shader" />
+    <None Include="res\shaders\BatchTexture.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl" />
     <None Include="src\vendor\glm\detail\func_common_simd.inl" />
     <None Include="src\vendor\glm\detail\func_exponential.inl" />
@@ -321,6 +323,7 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\TestBatchRendering.h" />
+    <ClInclude Include="src\tests\TestBatchRenderingWithTextures.h" />
     <ClInclude Include="src\tests\TestClearColor.h" />
     <ClInclude Include="src\tests\TestTexture.h" />
     <ClInclude Include="src\Texture.h" />

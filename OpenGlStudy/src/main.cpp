@@ -13,6 +13,7 @@
 #include "tests/TestClearColor.h"
 #include "tests/TestTexture.h"
 #include "tests/TestBatchRendering.h"
+#include "tests/TestBatchRenderingWithTextures.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -95,6 +96,7 @@ int main(int argc, char** argv)
 		testMenu->registerTest<test::TestClearColor>("Clear Color");
 		testMenu->registerTest<test::TestTexture>("Texture");
 		testMenu->registerTest<test::TestBatchRendering>("Batch Rendering");
+		testMenu->registerTest<test::TestBatchRenderingWithTextures>("Batch Rendering With Texture");
 		const float defaultClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		Renderer renderer;

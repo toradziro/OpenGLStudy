@@ -18,6 +18,7 @@
     <ClCompile Include="src\tests\Test.cpp" />
     <ClCompile Include="src\tests\TestTexture.cpp" />
     <ClCompile Include="src\tests\TestBatchRendering.cpp" />
+    <ClCompile Include="src\tests\TestBatchRenderingWithTextures.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -160,6 +161,7 @@
     <None Include="src\vendor\glm\gtx\vector_query.inl" />
     <None Include="src\vendor\glm\gtx\wrap.inl" />
     <None Include="res\shaders\Batch.shader" />
+    <None Include="res\shaders\BatchTexture.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h" />
@@ -469,5 +471,6 @@
     <ClInclude Include="src\tests\TestClearColor.h" />
     <ClInclude Include="src\tests\TestTexture.h" />
     <ClInclude Include="src\tests\TestBatchRendering.h" />
+    <ClInclude Include="src\tests\TestBatchRenderingWithTextures.h" />
   </ItemGroup>
 </Project>
