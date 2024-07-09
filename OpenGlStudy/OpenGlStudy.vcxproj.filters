@@ -17,6 +17,7 @@
     <ClCompile Include="src\tests\TestClearColor.cpp" />
     <ClCompile Include="src\tests\Test.cpp" />
     <ClCompile Include="src\tests\TestTexture.cpp" />
+    <ClCompile Include="src\tests\TestBatchRendering.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -158,6 +159,7 @@
     <None Include="src\vendor\glm\gtx\vector_angle.inl" />
     <None Include="src\vendor\glm\gtx\vector_query.inl" />
     <None Include="src\vendor\glm\gtx\wrap.inl" />
+    <None Include="res\shaders\Batch.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h" />
@@ -466,5 +468,6 @@
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\TestClearColor.h" />
     <ClInclude Include="src\tests\TestTexture.h" />
+    <ClInclude Include="src\tests\TestBatchRendering.h" />
   </ItemGroup>
 </Project>
