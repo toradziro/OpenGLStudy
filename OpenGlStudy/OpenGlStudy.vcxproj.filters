@@ -19,6 +19,7 @@
     <ClCompile Include="src\tests\TestTexture.cpp" />
     <ClCompile Include="src\tests\TestBatchRendering.cpp" />
     <ClCompile Include="src\tests\TestBatchRenderingWithTextures.cpp" />
+    <ClCompile Include="src\tests\TestBatchRenderingDynamicGeometry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -472,5 +473,6 @@
     <ClInclude Include="src\tests\TestTexture.h" />
     <ClInclude Include="src\tests\TestBatchRendering.h" />
     <ClInclude Include="src\tests\TestBatchRenderingWithTextures.h" />
+    <ClInclude Include="src\tests\TestBatchRenderingDynamicGeometry.h" />
   </ItemGroup>
 </Project>

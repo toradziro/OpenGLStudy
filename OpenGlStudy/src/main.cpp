@@ -14,6 +14,7 @@
 #include "tests/TestTexture.h"
 #include "tests/TestBatchRendering.h"
 #include "tests/TestBatchRenderingWithTextures.h"
+#include "tests/TestBatchRenderingDynamicGeometry.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -97,6 +98,8 @@ int main(int argc, char** argv)
 		testMenu->registerTest<test::TestTexture>("Texture");
 		testMenu->registerTest<test::TestBatchRendering>("Batch Rendering");
 		testMenu->registerTest<test::TestBatchRenderingWithTextures>("Batch Rendering With Texture");
+		testMenu->registerTest<test::TestBatchRenderingDynamicGeometry>("Dynamic Geometry");
+
 		const float defaultClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		Renderer renderer;
